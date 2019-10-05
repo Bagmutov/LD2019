@@ -1,12 +1,13 @@
 import { resize, drawTextBox } from "./tools/tech.js";
 import { Button, ButtonGroup, BUT_GLOB, Panel } from "./tools/button.js";
+import { PARTICLE_GLOB, ParticleGroup, NUM } from "./particles.js";
 
 let fMain = <HTMLCanvasElement> document.getElementById('can'), ctx=fMain.getContext('2d');
 resize(fMain);
 let gameRunning=true;
 
 window.addEventListener('keydown', keyDown);
-
+initGame();
 
 let butGr = new ButtonGroup();
 
@@ -20,11 +21,12 @@ pan.drawMe = function(ctx){
 }
 
 gameStep();
+let ptGr = new ParticleGroup(100,200,10);
 
 
 function gameStep(){
 	// console.log(clrPicker.cursors[0].dx);
-	if(gameRunning)setTimeout(gameStep, 100);
+	if(gameRunning)setTimeout(gameStep, 10);
 
 	worldStep();
 
@@ -32,11 +34,14 @@ function gameStep(){
 }
 
 function drawAll(){
+	ctx.clearRect(0,0,fMain.width,fMain.height);
 	// vecEditor.drawAll(ctx);
 	BUT_GLOB.drawAll(ctx);
+	PARTICLE_GLOB.drawAll(ctx);
 }
 
 function worldStep(){
+	PARTICLE_GLOB.stepAll();
 
 }
 
@@ -45,4 +50,8 @@ function keyDown(e){
 	switch(e.key){
 		case ' ': gameRunning=!gameRunning; break;
 	}
+}
+
+function initGame(){
+	NUM.init();
 }

@@ -42,7 +42,7 @@ export function drawTriangle(ctx:CanvasRenderingContext2D,x1,y1,x2,y2,x3,y3,clr 
 	ctx.lineTo(x3,y3);
 	ctx.fill();
 };
-export function drawRoundRect(ctx,x,y,r,w=ctx.canvas.width,h=ctx.canvas.height, clr='#000000', corn?:boolean[]=[true,true,true,true]){
+export function drawRoundRect(ctx,x,y,r,w=ctx.canvas.width,h=ctx.canvas.height, clr='#000000', corn:boolean[]=[true,true,true,true]){
 	var x1=x+r, x2=x+w-r, y1=y+r, y2=y+h-r;
 	ctx.beginPath();
 	if(corn[0])ctx.arc(x1,y1,r,3.14,4.71); else ctx.lineTo(x,y);
