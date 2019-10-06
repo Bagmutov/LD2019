@@ -136,7 +136,7 @@ class ColorPicker {
             };
             but.props.cursor = this.curspicks[0];
             but.props.prev = this.curspicks[0];
-            but.setLabel(1, this.colorUser.labels[i]);
+            but.setLabel(1, this.colorUser.labels[i] || "_");
             but.drawMe = function (ctx) {
                 ctx.fillStyle = "#000000";
                 ctx.moveTo(this.x + this.w / 2, this.y + this.h);

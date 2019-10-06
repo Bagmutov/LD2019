@@ -1,4 +1,4 @@
-import { fMain } from "./main.js";
+import { fMain, clrCtrl } from "./main.js";
 import { NUM } from "./particles.js";
 import { dist, arrFind, arrRemAll } from "./tools/math.js";
 import { toHexDouble } from "./tools/color/colorCore.js";
@@ -58,7 +58,7 @@ class Letter extends Flowing {
             if (this.opac >= 0xff || this.opac <= 0)
                 this.opv = 0;
         }
-        ctx.fillStyle = ((this.active) ? '#3366bb' : '#000000') + this.op;
+        ctx.fillStyle = ((this.active) ? clrCtrl.colors.textact : clrCtrl.colors.text) + this.op;
         ctx.font = this.rad * 2 + 'px sans-serif';
         ctx.fillText(this.letter, this.x, this.y);
     }
