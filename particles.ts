@@ -1,4 +1,5 @@
 import { drawCircle } from "./tools/tech.js";
+import { arrDel } from "./tools/math.js";
 
 class PARTICLE_GLOB{
     static groups:ParticleGroup[]=[];
@@ -23,7 +24,7 @@ class PARTICLE_GLOB{
             return this.allParticles[this.emptyNodes.pop()];
         } else {
             if(this.allParticles.length>99999)return;
-            let newp = {ind:this.allParticles.length,x:0,y:0,vx:0,vy:0,dir:0,r:10,opac:0xff};
+            let newp = {ind:this.allParticles.length,x:0,y:0,vx:0,vy:0,dir:0,r:10,opac:0xff, p1:0,p2:0};
             this.allParticles.push(newp);
             return newp;
         }
@@ -32,16 +33,19 @@ class PARTICLE_GLOB{
         this.emptyNodes.push(ind);
     }
 
+        static delGr(gr:ParticleGroup){
+            arrDel(this.groups,gr);
+        }
 }
 
-type Particle = {ind:number,x:number, y:number, vx:number, vy:number, dir:number, r:number, opac:number};
+type Particle = {ind:number,x:number, y:number, vx:number, vy:number, dir:number, r:number, opac:number, p1:number,p2:number};
 
 class ParticleGroup{
     myparticles:number[]=[];
     time:number=0;
     perSum:number=0;
     emitter:{x:number,y:number} = {x:0,y:0};
-    constructor(x:number,y:number,public period:number){
+    constructor(x:number,y:number,public period:number, public partN:number=10){
         PARTICLE_GLOB.addGr(this);
         this.emitter.x=x;
         this.emitter.y=y;
@@ -60,7 +64,7 @@ class ParticleGroup{
     step(p:Particle){
         p.x+=p.vx;
         p.y+=p.vy;
-        console.log('asd '+p.x);
+        // console.log('asd '+p.x);
         
     }
     draw(ctx:CanvasRenderingContext2D,p:Particle){
@@ -68,9 +72,12 @@ class ParticleGroup{
     }
 
     groupEmmit(){
+        if(this.partN--<=0){this.deleteGroup();return;}
         let p=PARTICLE_GLOB.addParticle();
         this.myparticles.push(p.ind);
         this.init(p);
+        // console.log(this.partN);
+        
     }
     groupStep(){
         this.time++;
@@ -84,6 +91,9 @@ class ParticleGroup{
     groupDraw(ctx){
         for(let pi of this.myparticles)
             this.draw(ctx,PARTICLE_GLOB.allParticles[pi]);
+    }
+    deleteGroup(){
+        PARTICLE_GLOB.delGr(this);
     }
 }
 
