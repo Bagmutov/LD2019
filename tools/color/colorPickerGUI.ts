@@ -45,8 +45,8 @@ class ColorPicker{
 			valSlider: new Slider( { par: this.gui,  val: 1, 
 				valFun: (v: number) => { if(picker.selectC.c)picker.selectC.c.curs.changePos(undefined, undefined, v, true); picker.renewCursClrs(); } }),
 			saveout:new Button({ par: this.gui,  }),
-			save:new Button({ par: this.gui, msclick:()=>{saveFile(picker.createEditorState(),'cs.json');} }),
-			load:new Button({ par: this.gui, msclick:()=>{loadJSON('cs.json',extractJSON)}}),
+			save:new Button({ par: this.gui, msclick:()=>{saveFile(picker.createEditorState(),'clrs.json');} }),
+			load:new Button({ par: this.gui, msclick:()=>{loadJSON('clrs.json',extractJSON)}}),
 		}
 		this.initPos(x,y,w,h);
 
@@ -74,6 +74,8 @@ class ColorPicker{
 	   function extractJSON(json:EditorState){
 		   let cpicks=picker.loadFromEditorState(json);
 	   }
+
+	   this.buts.load.mmsclick(0,0,false);
 	}
 
 	// draw(ctx: CanvasRenderingContext2D){

@@ -1,18 +1,20 @@
-import { WORD_CONTROL } from "./wordfaces.js";
+import { FACE_CONTROL } from "./wordfaces.js";
 import { arrFind, arrDel } from "./tools/math.js";
 import { MAP } from "./content.js";
+import { finder2 } from "./finder.js";
 class CONTROL {
-    // finder()
     static newKey(ch) {
         let neww = this.currWord + ch;
-        let parts = partFinder(neww, this.words);
-        if (!parts) {
-            this.currWord = "";
-        }
+        console.log(neww);
+        let parts = finder2(neww, this.words);
+        if (!parts)
+            this.clearWord();
         else {
             this.currWord = neww;
+            FACE_CONTROL.setActiveWords(parts, this.words);
             let ind = arrFind(MAP, (a) => (a.word == this.currWord));
-            if (ind >= 0) {
+            if (ind >= 0 && !MAP[ind].used) {
+                MAP[ind].used = true;
                 let mapobj = MAP[ind];
                 if (mapobj.clearStage)
                     for (let wo of this.words)
@@ -21,23 +23,25 @@ class CONTROL {
                     for (let crt of mapobj.creates) {
                         this.addLvlWord(crt);
                     }
+                this.clearWord();
             }
         }
-        WORD_CONTROL.setActiveWord(this.currWord);
+        // FACE_CONTROL.setActiveWords(this.currWord);
+    }
+    static clearWord() {
+        this.currWord = "";
+        FACE_CONTROL.setActiveWords([], this.words);
     }
     static delWord(word) {
         arrDel(this.words, word);
-        WORD_CONTROL.delWord(word);
+        FACE_CONTROL.delWord(word);
     }
     static addLvlWord(word) {
         this.words.push(word);
-        WORD_CONTROL.addWord(word);
+        FACE_CONTROL.addWord(word);
     }
 }
 CONTROL.words = [];
 CONTROL.currWord = "";
-function partFinder(w, ws) {
-    return [];
-}
 export { CONTROL };
 //# sourceMappingURL=control.js.map

@@ -2,7 +2,7 @@ export class SOUND {
     static init() {
         this.sound["test"] = new Howl({
             src: ['sound.mp3'],
-            autoplay: true,
+            // autoplay: true,
             loop: false,
             volume: 0.5,
             onend: function () {

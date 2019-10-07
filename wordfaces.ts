@@ -1,6 +1,6 @@
 import { drawCircle, drawTextBox } from "./tools/tech.js";
 import { fMain, clrCtrl } from "./main.js";
-import { NUM } from "./particles.js";
+import { NUM, ParticleGroup, Particle } from "./particles.js";
 import { dist, arrFind, arrDel, arrRemAll } from "./tools/math.js";
 import { toHexDouble } from "./tools/color/colorCore.js";
 
@@ -45,10 +45,11 @@ class Flowing{
 }
 
 class Letter extends Flowing{
-    rad:number=20;
+    static size = 30;
+    rad:number=30;
     active:boolean = false;
     op:string="00";
-    opv:number=1;
+    opv:number=5; 
     private _opac:number = 0x00;
     set opac(v:number){this.op=toHexDouble(v); this._opac=v%0xff;}
     get opac(){return this._opac}
@@ -64,12 +65,18 @@ class Letter extends Flowing{
         if(this.opv!=0){this.opac+=this.opv; if(this.opac>=0xff||this.opac<=0)this.opv=0;}
 
         ctx.fillStyle=((this.active)?clrCtrl.colors.textact:clrCtrl.colors.text)+this.op;
-        ctx.font = this.rad*2+'px sans-serif';
+        ctx.font = this.rad*2+'px Indie Flower';
         ctx.fillText(this.letter, this.x, this.y);
 
     }
     beginRemoval(){
         this.opv=-5;
+    }
+    activate(){
+        this.active=true;
+    }
+    deactivate(){
+        this.active=false;
     }
     
 }
@@ -89,9 +96,9 @@ class Word extends Flowing{
             this.placeLetters();
     }
     placeLetters(){
-        for(let i=0;i< this.letters.length;i++){
-            this.letters[i].setTarget(this.x+i*this.spacing,this.y);
-        }
+        for(let i=0;i< this.letters.length;i++)
+            if(!this.letters[i].active)
+                this.letters[i].setTarget(this.x+i*this.spacing- this.letters.length*this.spacing/2,this.y+this.letters[i].rad);
     }
     stepDraw(ctx:CanvasRenderingContext2D){
 
@@ -101,20 +108,29 @@ class Word extends Flowing{
         this.letters[i].stepDraw(ctx);
 
     }
+    activate(str:string,lst){
+        let ind = this.str.indexOf(str);
+        for(let i=0;i<str.length;i++){
+            this.letters[i+ind].activate();
+            lst.push( this.letters[i+ind]);
+        }
+    }
 }
 
-class WORD_CONTROL{
+class FACE_CONTROL{
     static letters:Letter[]=[];
     static offTimer={t:10,lind:0};
     static words:Word[]=[];
     static deadWords:{w:Word,time:number}[] = [];
     static strtAng:number =0;
     static actWord:string="";
+    static actLetters:Letter[]=[];
 
     static addWord(str:string){
         let word:Word=new Word(str);
         this.words.push(word);
         this.placeWords();
+        this.createParticles(word.x,word.y,str,word);
         for(let i=0;i<str.length;i++){
             let lt=new Letter(str[i],word.x+NUM.getRND()*100-50,word.y+NUM.getRND()*100-50);
             this.letters.push(lt);
@@ -134,6 +150,8 @@ class WORD_CONTROL{
         let ang = 6.28/this.words.length, i=0;
         for(let w of this.words)
             w.setPos(Math.cos(this.strtAng+ang*(i))*fMain.width/4+fMain.width/2, Math.sin(this.strtAng+ang*(i++))*fMain.height/4+fMain.height/2);
+        for(let i=0;i<this.actLetters.length;i++)
+            this.actLetters[i].setTarget(fMain.width/2+(-this.actLetters.length/2+i)*Letter.size ,fMain.height/2);
     } 
 
     static drawAll(ctx){
@@ -159,14 +177,60 @@ class WORD_CONTROL{
             lt.addV(dx/d,dy/d);//lt.tx+
         }
     }
-    static setActiveWord(aword:string){
+    static setActiveWords(awords:string[], hosts:string[]){
+        this.actLetters=[];
         for(let lt of this.letters)
-            lt.active=false;
-        for(let ch of aword)
-            for(let lt of this.letters)
-                if(lt.letter==ch)lt.active=true;
+            lt.deactivate();
+        for(let i=0;i<awords.length;i++)
+            for(let wrd of this.words)
+                if(hosts[i]==wrd.str)wrd.activate(awords[i],this.actLetters);
         
+    }
+
+    static createParticles(x,y,name,word:Word=null){
+        let ptg:ParticleGroup;
+        switch(name){
+            case "light":
+                ptg = new ParticleGroup(x,y,.3,100,word.letters[0]);
+                
+                ptg.draw = function(ctx,p:Particle){
+                    p.opac*=.99;
+                    p.vx*=.99;
+                    p.vy*=.99;
+                    ctx.beginPath();
+                    ctx.strokeStyle=clrCtrl.colors.ptcls[2]+toHexDouble(~~p.opac);
+                    ctx.lineWidth =2;
+                    ctx.moveTo(p.x,p.y);
+                    ctx.lineTo(p.x+p.vx*p.time, p.y+p.vy*p.time);
+                    ctx.stroke();
+                }
+            break;
+            default:
+                ptg = new ParticleGroup(x,y,1,100,word.letters[0]);
+                
+                ptg.draw = function(ctx:CanvasRenderingContext2D,p:Particle){
+                    p.opac*=.99;
+                    p.vx*=.9;
+                    p.vy*=.9;
+                    ctx.beginPath();
+                    ctx.strokeStyle=clrCtrl.colors.ptcls[2]+toHexDouble(~~p.opac);
+                    ctx.lineWidth =1;
+                    ctx.arc(p.x,p.y,p.time*.5+50,p.dir-.4,p.dir+.4);
+                    // ctx.lineTo(p.x+p.vx*p.time, p.y+p.vy*p.time);
+                    ctx.stroke();
+                }
+                ptg.init=function(p:Particle){
+                    p.dir=NUM.getRND()*6.28;
+                    let v=.0+5*NUM.getRND();
+                    p.vx=Math.cos(p.dir)*v;
+                    p.vy=Math.sin(p.dir)*v;
+                    p.x=this.emitter.x;
+                    p.y=this.emitter.y;
+                    // p.time=0;
+                }
+                
+        }
     }
 }
 
-export{Letter, WORD_CONTROL}
+export{Letter, FACE_CONTROL}
